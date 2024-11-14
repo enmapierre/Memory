@@ -268,12 +268,96 @@ def jugador_vs_maquina():
         print("\n¡Es un empate!")
 
 
+def maquina_vs_maquina():
+    global puntos_jugador1, puntos_jugador2, turno_jugador1, total_cartas
+    memoria_maquina1 = {}  
+    memoria_maquina2 = {}  
+
+    # Iniciar el juego hasta que se encuentren todas las parejas
+    while puntos_jugador1 + puntos_jugador2 < total_cartas:
+        jugador_actual = "Máquina 1" if turno_jugador1 else "Máquina 2"
+        memoria_actual = memoria_maquina1 if turno_jugador1 else memoria_maquina2
+
+        print(f"\nComienza el turno de {jugador_actual}")
+
+        # Intento de encontrar pareja en la memoria
+        pareja_encontrada = False
+        pos_x1 = pos_y1 = pos_x2 = pos_y2 = None
+
+        # Intentar buscar una pareja en la memoria
+        for (x, y), carta in memoria_actual.items():
+            for i in range(filas):
+                for j in range(columnas):
+                    if (i, j) != (x, y) and tablero[i][j] == "#" and tablero_oculto[i][j] == carta:
+                        pos_x1, pos_y1 = x, y
+                        pos_x2, pos_y2 = i, j
+                        pareja_encontrada = True
+                        break
+                if pareja_encontrada:
+                    break
+            if pareja_encontrada:
+                break
+
+        # Si no encuentra pareja en la memoria, elige aleatoriamente
+        if not pareja_encontrada:
+            # Escoger la primera carta aleatoria
+            opciones = []
+            for i in range(filas):
+                for j in range(columnas):
+                    if tablero[i][j] == "#":
+                        opciones.append((i, j))
+            pos_x1, pos_y1 = random.choice(opciones)
+            tablero[pos_x1][pos_y1] = tablero_oculto[pos_x1][pos_y1]
+            print(f"{jugador_actual} ha seleccionado la posición ({pos_x1 + 1}, {pos_y1 + 1})")
+            mostrar_tablero(tablero)
+
+            # Escoger la segunda carta aleatoria, evitando repetir la misma posición
+            opciones = [(i, j) for (i, j) in opciones if (i, j) != (pos_x1, pos_y1)]
+            pos_x2, pos_y2 = random.choice(opciones)
+            tablero[pos_x2][pos_y2] = tablero_oculto[pos_x2][pos_y2]
+            print(f"{jugador_actual} ha seleccionado la posición ({pos_x2 + 1}, {pos_y2 + 1})")
+            mostrar_tablero(tablero)
+
+        # Verificar si las cartas coinciden
+        if tablero_oculto[pos_x1][pos_y1] == tablero_oculto[pos_x2][pos_y2]:
+            tablero[pos_x1][pos_y1] = tablero_oculto[pos_x1][pos_y1]
+            tablero[pos_x2][pos_y2] = tablero_oculto[pos_x2][pos_y2]
+            print(f"¡{jugador_actual} ha encontrado una pareja!")
+            if turno_jugador1:
+                puntos_jugador1 += 2
+            else:
+                puntos_jugador2 += 2
+            # Remover la carta de la memoria, ya que ha sido emparejada
+            memoria_actual.pop((pos_x1, pos_y1), None)
+            memoria_actual.pop((pos_x2, pos_y2), None)
+        else:
+            print(f"{jugador_actual} no ha encontrado la pareja.")
+            tablero[pos_x1][pos_y1] = "#"
+            tablero[pos_x2][pos_y2] = "#"
+            # Memorizar las cartas descubiertas
+            memoria_actual[(pos_x1, pos_y1)] = tablero_oculto[pos_x1][pos_y1]
+            memoria_actual[(pos_x2, pos_y2)] = tablero_oculto[pos_x2][pos_y2]
+            turno_jugador1 = not turno_jugador1  # Cambiar de turno
+
+        # Mostrar el tablero actualizado
+        mostrar_tablero(tablero)
+
+    # Determinar el ganador
+    if puntos_jugador1 > puntos_jugador2:
+        print("\n¡Máquina 1 gana con {} puntos!".format(puntos_jugador1))
+    elif puntos_jugador2 > puntos_jugador1:
+        print("\n¡Máquina 2 gana con {} puntos!".format(puntos_jugador2))
+    else:
+        print("\n¡Es un empate!")
+
+
 # Menú principal
 def menu():
     while True:
         print("\n1. Iniciar juego (Jugador vs Jugador)")
         print("2. Iniciar juego (Jugador vs Máquina)")
-        print("3. Salir")
+        print("3. Iniciar juego (Maquina vs Máquina)")
+        print("4. Salir")
         opcion = int(input("Elige una opción: "))
 
         if opcion == 1:
@@ -283,6 +367,9 @@ def menu():
             crear_tablero()
             jugador_vs_maquina()
         elif opcion == 3:
+            crear_tablero()
+            maquina_vs_maquina()
+        elif opcion == 4:
             print("Saliendo del juego...")
             break
         else:
