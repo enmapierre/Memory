@@ -178,7 +178,6 @@ def jugador_vs_maquina():
             pos_x1, pos_y1 = None, None
             pos_x2, pos_y2 = None, None
             # La máquina intenta encontrar una pareja con las cartas en memoria
-             # La máquina intenta encontrar una pareja en su memoria
             for (x1, y1), valor1 in memoria_maquina.items():
                 for (x2, y2), valor2 in memoria_maquina.items():
                     if (x1, y1) != (x2, y2) and valor1 == valor2:
